@@ -1,0 +1,13 @@
+# Private keys never enter the repository. keygen.mjs writes them to tap-agent/keys/private/, which is ignored.
+tap-agent/keys/private/
+*.pem
+*.key
+.env
+.env.*
+
+# Local outputs of the verification and reproduction scripts
+verify/out/
+scripts/out/
+
+node_modules/
+.DS_Store
