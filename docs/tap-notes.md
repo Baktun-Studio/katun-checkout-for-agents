@@ -73,6 +73,6 @@ specification, and the sample code's license points to Visa's terms rather than 
 
 ## Wording
 
-The honest sentence for any public text about this demonstration: "agent identity verified with Visa's Trusted Agent Protocol
-signatures (RFC 9421), tested against our own TAP-conformant agent". Not "Visa-verified", not "approved by Visa", not "certified
-by Visa", and nothing about enrollment in any Visa program.
+The sentence we use in any public text about this demonstration: "agent identity verified with Visa's Trusted Agent Protocol
+signatures (RFC 9421), tested against our own TAP-conformant agent". Nothing in this repository claims a review, a certification
+or a program membership from Visa.

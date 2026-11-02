@@ -30,12 +30,14 @@ node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --unsigned   # the same
 ## Publishing the key directory
 
 The merchant needs to fetch the agent's public key by `kid`. The directory is `tap-agent/keys/jwks.json`; once this repository is
-public, GitHub Pages serves it at `https://baktun-studio.github.io/katun-checkout-for-agents/tap-agent/keys/jwks.json`. Until
-then, serve the same file from any `https` host and give that URL when registering the agent with the merchant.
+public and GitHub Pages is turned on for it, Pages serves it at `https://baktun-studio.github.io/katun-checkout-for-agents/tap-agent/keys/jwks.json`. Until
+then, serve the same file from any `https` host. Katun recognizes an agent when the platform operator adds its key directory to
+the platform registry; with the Trusted Agent Protocol, a `keyid` that is in no registered directory is an invalid signature
+(`https://sandbox.katunpay.com/docs/referencia-del-conector?lang=en`, Agent identity).
 
 ## What this is and is not
 
 - It is our own agent with our own keys in our own directory, conformant to the public TAP specification as read on
-  26 October 2026. It is not an agent registered with, verified by or approved by Visa.
+  26 October 2026. Visa has not reviewed it.
 - The signature proves that whoever holds the private key sent this request to this host and path within this time window. It
   does not identify the human behind the agent.

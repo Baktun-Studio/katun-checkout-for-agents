@@ -1,11 +1,14 @@
 #!/usr/bin/env node
-// Generates the synthetic catalog (catalog/products.csv) and one placeholder SVG per product (catalog/images/{sku}.svg).
+// Generates the synthetic catalog (catalog/products.csv) and two placeholder images per product: catalog/images/{sku}.png (the
+// one the CSV points to) and catalog/images/{sku}.svg (kept for reference). PNG because the Airwallex catalog uses the Google
+// Merchant Center format, which does not accept SVG images.
 // Deterministic, no dependencies. Format read from the Katun sandbox merchant guide on 2026-10-26:
 //   sku,name,description,price,stock,category,image
 // Everything is fictional: an outdoor-equipment store that does not exist, with invented names and prices.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { placeholderPng } from "./png.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -13,8 +16,13 @@ const opt = (name, fallback) => {
   const i = args.indexOf(name);
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 };
-const IMAGE_BASE = opt("--image-base", "https://baktun-studio.github.io/katun-checkout-for-agents/catalog/images/").replace(/\/?$/, "/");
+const IMAGE_BASE = opt("--image-base", "https://raw.githubusercontent.com/Baktun-Studio/katun-checkout-for-agents/main/catalog/images/").replace(/\/?$/, "/");
 const COUNT = Number(opt("--count", "100"));
+const FORMAT = opt("--image-format", "png");
+if (FORMAT !== "png" && FORMAT !== "svg") {
+  console.error("--image-format must be png or svg");
+  process.exit(1);
+}
 if (!IMAGE_BASE.startsWith("https://")) {
   console.error("--image-base must be an https URL: the sandbox only publishes products whose photo is served over https");
   process.exit(1);
@@ -57,7 +65,7 @@ outer: for (const cat of CATEGORIES) {
     const rnd = seeded(n);
     const stock = 3 + Math.floor(rnd() * 40);
     const description = `${name}. Made of ${MATERIAL[Math.floor(rnd() * MATERIAL.length)]}, sized for ${USE[Math.floor(rnd() * USE.length)]}. Synthetic demo product, not for sale.`;
-    rows.push({ sku, name, description, price: price.toFixed(2), stock, category: cat.name, image: `${IMAGE_BASE}${sku}.svg` });
+    rows.push({ sku, name, description, price: price.toFixed(2), stock, category: cat.name, image: `${IMAGE_BASE}${sku}.${FORMAT}` });
   }
 }
 
@@ -77,5 +85,6 @@ for (const r of rows) {
 </svg>
 `;
   writeFileSync(join(HERE, "images", `${r.sku}.svg`), svg, "utf8");
+  writeFileSync(join(HERE, "images", `${r.sku}.png`), placeholderPng({ name: r.name, category: r.category, sku: r.sku, hue }));
 }
-console.log(`wrote ${rows.length} products to catalog/products.csv and ${rows.length} images to catalog/images/`);
+console.log(`wrote ${rows.length} products to catalog/products.csv and ${rows.length * 2} images (PNG and SVG) to catalog/images/; the CSV points to the ${FORMAT} files`);
