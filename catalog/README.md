@@ -9,19 +9,16 @@ sandbox imports. Nothing here is a real product, brand or price.
 node catalog/generate-catalog.mjs
 ```
 
-Writes `catalog/products.csv` (100 rows) and two placeholder photos per product: `catalog/images/{sku}.png`, the one the CSV points
-to, and `catalog/images/{sku}.svg`, kept for reference. The photos are PNG because the Airwallex catalog uses the Google Merchant
+Writes `catalog/products.csv` (100 rows), a placeholder PNG photo per product (`catalog/images/{sku}.png`) and
+`catalog/photos.zip` with the 100 PNG photos named by SKU (`TNT-01.png`). The photos are PNG because the Airwallex catalog uses the Google Merchant
 Center format, and Merchant Center does not accept SVG images. The output is deterministic: running it twice with the same Node.js
 gives the same files.
 
 Options:
 
-- `--image-base <https URL>`: prefix for the `image` column. Default:
-  `https://raw.githubusercontent.com/Baktun-Studio/katun-checkout-for-agents/main/catalog/images/`, which serves the files once
-  this repository is public. The sandbox publishes to assistants only products that have a photo, and the photo must be an `https`
-  address reachable when the catalog is imported, so with a fork or a private copy point `--image-base` at any public `https` host
-  where you copied `catalog/images/`.
-- `--image-format png|svg`: which files the CSV points to (default `png`).
+- `--image-base <https URL>`: optional prefix for the `image` column. Without it (the default) the column is empty and the photos
+  are uploaded to the sandbox from the Catalog screen with `catalog/photos.zip` (see below), so the sandbox serves them itself and
+  no outside host is needed. Use it only if you host `catalog/images/` on your own `https` host.
 - `--count <n>`: number of products (default 100, the minimum the hackathon kit asks for).
 
 ## CSV format
@@ -35,7 +32,8 @@ sku,name,description,price,stock,category,image
 - `price` uses a decimal point and no thousands separator (`1799.00`).
 - The sandbox works in US dollars; the currency column is optional and omitted here.
 - `stock` is a whole number.
-- `image` is an `https` address. A product without a photo is not published to assistants.
+- `image` is an `https` address, or empty. A product without a photo is not published to assistants, so with an empty column
+  upload `catalog/photos.zip` after the import.
 - The import is processed row by row: valid rows are saved, rows with problems are reported with their line number and reason,
   and products missing from the file are not deleted.
 

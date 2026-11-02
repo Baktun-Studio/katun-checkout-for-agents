@@ -1,7 +1,11 @@
 #!/usr/bin/env node
-// Generates the synthetic catalog (catalog/products.csv) and two placeholder images per product: catalog/images/{sku}.png (the
-// one the CSV points to) and catalog/images/{sku}.svg (kept for reference). PNG because the Airwallex catalog uses the Google
-// Merchant Center format, which does not accept SVG images.
+// Generates the synthetic catalog (catalog/products.csv), a placeholder PNG photo per product (catalog/images/{sku}.png) and
+// catalog/photos.zip with the same PNG files named by SKU. PNG because the
+// Airwallex catalog uses the Google Merchant Center format, which does not accept SVG images, and the Katun sandbox accepts
+// only JPEG, PNG or WebP photos.
+// By default the CSV image column is empty: the photos are uploaded to the sandbox with "Upload photos or a .zip" in the
+// Catalog screen (catalog/photos.zip), so the sandbox serves them itself and no outside host is needed. With
+// --image-base <https URL> the CSV points to that host instead.
 // Deterministic, no dependencies. Format read from the Katun sandbox merchant guide on 2026-10-26:
 //   sku,name,description,price,stock,category,image
 // Everything is fictional: an outdoor-equipment store that does not exist, with invented names and prices.
@@ -9,6 +13,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { placeholderPng } from "./png.mjs";
+import { zipStored } from "./zip.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -16,14 +21,10 @@ const opt = (name, fallback) => {
   const i = args.indexOf(name);
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 };
-const IMAGE_BASE = opt("--image-base", "https://raw.githubusercontent.com/Baktun-Studio/katun-checkout-for-agents/main/catalog/images/").replace(/\/?$/, "/");
+const IMAGE_BASE_ARG = opt("--image-base", "");
+const IMAGE_BASE = IMAGE_BASE_ARG ? IMAGE_BASE_ARG.replace(/\/?$/, "/") : "";
 const COUNT = Number(opt("--count", "100"));
-const FORMAT = opt("--image-format", "png");
-if (FORMAT !== "png" && FORMAT !== "svg") {
-  console.error("--image-format must be png or svg");
-  process.exit(1);
-}
-if (!IMAGE_BASE.startsWith("https://")) {
+if (IMAGE_BASE && !IMAGE_BASE.startsWith("https://")) {
   console.error("--image-base must be an https URL: the sandbox only publishes products whose photo is served over https");
   process.exit(1);
 }
@@ -65,7 +66,7 @@ outer: for (const cat of CATEGORIES) {
     const rnd = seeded(n);
     const stock = 3 + Math.floor(rnd() * 40);
     const description = `${name}. Made of ${MATERIAL[Math.floor(rnd() * MATERIAL.length)]}, sized for ${USE[Math.floor(rnd() * USE.length)]}. Synthetic demo product, not for sale.`;
-    rows.push({ sku, name, description, price: price.toFixed(2), stock, category: cat.name, image: `${IMAGE_BASE}${sku}.${FORMAT}` });
+    rows.push({ sku, name, description, price: price.toFixed(2), stock, category: cat.name, image: IMAGE_BASE ? `${IMAGE_BASE}${sku}.png` : "" });
   }
 }
 
@@ -76,15 +77,7 @@ writeFileSync(join(HERE, "products.csv"), csv, "utf8");
 mkdirSync(join(HERE, "images"), { recursive: true });
 for (const r of rows) {
   const hue = (parseInt(r.sku.replace(/\D/g, ""), 10) * 37 + r.category.length * 23) % 360;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="${r.name}">
-  <rect width="600" height="600" fill="hsl(${hue} 35% 92%)"/>
-  <rect x="40" y="40" width="520" height="520" rx="24" fill="none" stroke="hsl(${hue} 40% 45%)" stroke-width="6"/>
-  <text x="300" y="270" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="34" fill="hsl(${hue} 40% 25%)">${r.name.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</text>
-  <text x="300" y="330" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="hsl(${hue} 30% 40%)">${r.category} · ${r.sku}</text>
-  <text x="300" y="520" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="hsl(${hue} 20% 50%)">synthetic demo product</text>
-</svg>
-`;
-  writeFileSync(join(HERE, "images", `${r.sku}.svg`), svg, "utf8");
   writeFileSync(join(HERE, "images", `${r.sku}.png`), placeholderPng({ name: r.name, category: r.category, sku: r.sku, hue }));
 }
-console.log(`wrote ${rows.length} products to catalog/products.csv and ${rows.length * 2} images (PNG and SVG) to catalog/images/; the CSV points to the ${FORMAT} files`);
+writeFileSync(join(HERE, "photos.zip"), zipStored(rows.map((r) => ({ name: `${r.sku}.png`, data: placeholderPng({ name: r.name, category: r.category, sku: r.sku, hue: (parseInt(r.sku.replace(/\D/g, ""), 10) * 37 + r.category.length * 23) % 360 }) }))));
+console.log(`wrote ${rows.length} products to catalog/products.csv, ${rows.length} PNG photos to catalog/images/ and ${rows.length} PNG photos to catalog/photos.zip; ${IMAGE_BASE ? `the CSV points to the PNG files at ${IMAGE_BASE}` : "the CSV image column is empty (upload catalog/photos.zip in the sandbox Catalog screen)"}`);

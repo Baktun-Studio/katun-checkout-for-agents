@@ -55,13 +55,14 @@ A contact can have up to three sandboxes. A sandbox is deleted after 30 days wit
    node catalog/generate-catalog.mjs
    ```
 
-   It writes `catalog/products.csv` (100 products) and a PNG placeholder photo per product in `catalog/images/`. The sandbox and
-   the Airwallex catalog only publish products whose photo is reachable over `https`; by default the CSV points to this
-   repository's files on `raw.githubusercontent.com`. If you use a fork or a private copy, pass `--image-base <https URL>` with a
-   public host where you copied `catalog/images/`.
+   It writes `catalog/products.csv` (100 products, image column empty) and `catalog/photos.zip` (one PNG photo per product,
+   named by SKU). The sandbox and the Airwallex catalog only publish products that have a photo; the photos are uploaded to the
+   sandbox itself in step 3, so no outside image host is needed.
 2. Sign out and sign in again with your contact; choose the store to see it as its owner.
 3. In Catalog, download the CSV template once to confirm the columns have not changed, then import `catalog/products.csv`. The
-   report must say 100 rows saved and none with problems.
+   report must say 100 rows saved and none with problems. Then, in the same screen, use Upload photos or a .zip with
+   `catalog/photos.zip`: each photo is matched to its product by the SKU in the file name, and the sandbox serves it from its own
+   address.
 4. In Your business, set the Order limit to US$ 150.00, so an order above it waits for a person's approval.
 
 ## 5. The payment method
