@@ -12,8 +12,8 @@ Trusted Agent Protocol, the offline receipt verifier, and the step-by-step walkt
 Everything runs in sandboxes, with synthetic data and test cards: no money moves.
 
 > **Status on 2 November 2026.** The Katun side of every step below is implemented in the public sandbox. The live runs are
-> pending. Airwallex's merchant onboarding API answers our sandbox account (the store is not onboarded yet), and Airwallex has
-> not yet published the request it sends to the merchant's checkout URL. The [status table](#status) says, step by step, what has run live and when. Nothing in this README
+> pending. Airwallex's merchant onboarding API answers our sandbox account (the store is not onboarded yet). Airwallex published
+> its merchant checkout and OAuth contract on 2 November 2026; adapting the merchant side to it is pending. The [status table](#status) says, step by step, what has run live and when. Nothing in this README
 > describes as done a step that has not run.
 
 ## What the demonstration shows
@@ -150,7 +150,7 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 | Partner sandbox, store, catalog import, order limit, network view | Implemented in the sandbox, pending live run |
 | Airwallex (sandbox) payment method, its credentials and notification URL | Implemented in the sandbox, pending live run |
 | Merchant onboarding to Airwallex and catalog publication from the panel | Implemented in the sandbox, pending live run |
-| Purchase in Claude through the Airwallex merchant MCP endpoint, order number back | Implemented in the sandbox, pending Airwallex's published checkout contract and live run |
+| Purchase in Claude through the Airwallex merchant MCP endpoint, order number back | Pending: adapting to the checkout contract Airwallex published on 2 November 2026, then live run |
 | Order above the limit, named approval, single capture | Implemented in the sandbox, pending live run |
 | Changed price, unavailable product or declined card without a duplicate payment | Implemented in the sandbox, pending live run |
 | Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Implemented in the sandbox, pending live run |
