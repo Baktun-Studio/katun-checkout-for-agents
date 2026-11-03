@@ -11,10 +11,12 @@ This repository holds what a third party needs to reproduce the demonstration ag
 Trusted Agent Protocol, the offline receipt verifier, and the step-by-step walkthrough. It does not contain Katun itself.
 Everything runs in sandboxes, with synthetic data and test cards: no money moves.
 
-> **Status on 2 November 2026.** The Katun side of every step below is implemented in the public sandbox. The live runs are
+> **Status on 3 November 2026.** The Katun side of every step below is implemented in the public sandbox. The live runs are
 > pending. Airwallex's merchant onboarding API answers our sandbox account (the store is not onboarded yet). Airwallex published
-> its merchant checkout and OAuth contract on 2 November 2026; adapting the merchant side to it is pending. The [status table](#status) says, step by step, what has run live and when. Nothing in this README
-> describes as done a step that has not run.
+> its merchant checkout and OAuth contract on 2 November 2026; adapting the merchant side to it is pending. The same purchase
+> also runs through the store's own Katun connector, paid with Airwallex Payment Intents; that route does not depend on the
+> Airwallex merchant MCP endpoint. The [status table](#status) says, step by step, what has run live and when. Nothing in this
+> README describes as done a step that has not run.
 
 ## What the demonstration shows
 
@@ -23,6 +25,13 @@ Everything runs in sandboxes, with synthetic data and test cards: no money moves
    the catalog, confirms store, product, quantity, delivery and total, and opens the Airwallex payment component. The buyer types a
    test card there, never in the chat. Airwallex asks Katun's checkout for the order; Katun checks stock, price and limit and
    answers with its order number, which comes back to the buyer with the payment outcome.
+
+   **The same purchase through the store's Katun connector.** Claude can also connect directly to the store's own Katun
+   connector (`https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp`). Claude searches, confirms the terms and
+   creates the order; Katun answers with its order number and a payment link. The link opens the store's public order page,
+   whose "Pay with Airwallex (sandbox)" button creates an Airwallex Payment Intent and opens Airwallex's hosted payment page,
+   where the buyer types the test card. Airwallex's signed notification, or a status check when the buyer comes back, confirms
+   the payment. The order limit, the named approval and the signed receipt are the same.
 2. **An exception without a duplicate payment.** An order above the store's limit waits in Exceptions. A named person approves it
    and the payment is captured once; a rejection voids the authorization. A changed price, an unavailable product or a declined
    test card stops the purchase without a second payment.
@@ -125,9 +134,13 @@ The full walkthrough, with every screen and command, is in [`scripts/walkthrough
 7. **Buy.** Ask Claude for a product, confirm the terms, pay in the Airwallex payment component with test card
    `4035 5010 0000 0008` (any future date, any CVC), and read the Katun order number. Repeat with an order above US$ 150.00 and
    approve it in Exceptions.
+   Through the store's Katun connector instead: add `https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp` (Channels,
+   with the store chosen) to Claude as a connector, ask for a product, confirm the terms, open the payment link Claude returns,
+   press Pay with Airwallex (sandbox) and pay on Airwallex's page with the same test card. Steps 5 and 6 are not needed for this
+   route.
 8. **Verify the receipt offline.** `bash verify/verify-receipt.sh <institution-id> <order-number>`.
 9. **Second scene, TAP.** `node tap-agent/demo-buy.mjs --mcp <Katun connector of the demonstration store> --query "headlamp"`,
-   with and without `--unsigned`. The store policy and the platform registry are set by the Katun platform operator, so this scene
+   with and without `--unsigned`, and with `--replay` to resend the signed order request with its used `nonce`. The store policy and the platform registry are set by the Katun platform operator, so this scene
    runs against the demonstration store; with your own key, ask for your key directory to be registered (see
    [`tap-agent/README.md`](tap-agent/README.md)).
 10. **Network view.** Back in All stores: Home, Exceptions, Consolidated, Channels and Orders.
@@ -151,6 +164,7 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 | Airwallex (sandbox) payment method, its credentials and notification URL | Implemented in the sandbox, pending live run |
 | Merchant onboarding to Airwallex and catalog publication from the panel | Implemented in the sandbox, pending live run |
 | Purchase in Claude through the Airwallex merchant MCP endpoint, order number back | Pending: adapting to the checkout contract Airwallex published on 2 November 2026, then live run |
+| Purchase in Claude through the store's Katun connector, paid on Airwallex's hosted payment page (Payment Intents), order number back | Implemented in the sandbox, pending live run |
 | Order above the limit, named approval, single capture | Implemented in the sandbox, pending live run |
 | Changed price, unavailable product or declined card without a duplicate payment | Implemented in the sandbox, pending live run |
 | Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Implemented in the sandbox, pending live run |

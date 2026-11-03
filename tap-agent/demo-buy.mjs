@@ -5,9 +5,12 @@
 //
 //   node tap-agent/demo-buy.mjs --mcp https://sandbox.katunpay.com/t/{pub}/m/{store}/mcp --query "headlamp" --quantity 1
 //   node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --unsigned
+//   node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --replay   # then resends the signed order request as is
 //
 // Browsing calls (search, product) are tagged agent-browser-auth; the order is tagged agent-payer-auth. The buyer pseudonym is
 // fixed and synthetic. No card data is ever sent: the order's payment happens on the merchant's public order page.
+// With --replay, after the order is placed the exact same signed request (same headers, same nonce, same body) is sent
+// again, the way an eavesdropper would replay it; a merchant that enforces single-use nonces answers 401.
 import { loadAgentKeys, signRequest } from "./sign.mjs";
 
 const args = process.argv.slice(2);
@@ -24,25 +27,33 @@ const QUERY = opt("--query", "headlamp");
 const QUANTITY = Number(opt("--quantity", "1"));
 const LANG = opt("--lang", "en");
 const UNSIGNED = args.includes("--unsigned");
+const REPLAY = args.includes("--replay");
+if (UNSIGNED && REPLAY) {
+  console.error("--replay needs a signed request; drop --unsigned");
+  process.exit(2);
+}
 const SIGNATURE_AGENT = opt("--signature-agent", undefined);
 const keys = UNSIGNED ? null : loadAgentKeys();
 
 let sessionId = null;
 let nextId = 1;
+let lastRequest = null;
 
 async function rpc(method, params, tag) {
   const payload = { jsonrpc: "2.0", id: nextId++, method, params };
   const headers = { "content-type": "application/json", accept: "application/json, text/event-stream", "mcp-protocol-version": "2025-06-18" };
   if (sessionId) headers["mcp-session-id"] = sessionId;
   if (keys) Object.assign(headers, signRequest({ method: "POST", url: MCP, keyid: keys.keyid, privateKeyPem: keys.privateKeyPem, tag, signatureAgent: SIGNATURE_AGENT }).headers);
-  const res = await fetch(MCP, { method: "POST", headers, body: JSON.stringify(payload) });
+  const body = JSON.stringify(payload);
+  lastRequest = { headers: { ...headers }, body };
+  const res = await fetch(MCP, { method: "POST", headers, body });
   const sid = res.headers.get("mcp-session-id");
   if (sid) sessionId = sid;
   const text = await res.text();
   if (!res.ok) {
     console.log(`${method}: HTTP ${res.status}`);
     console.log(text.slice(0, 600));
-    throw new Error(`HTTP ${res.status} on ${method}`);
+    process.exit(1);
   }
   // Streamable HTTP may answer as JSON or as an SSE stream of "data:" lines; take the message with our id.
   const ct = res.headers.get("content-type") ?? "";
@@ -90,3 +101,14 @@ console.log("availability:", textOf(availability).slice(0, 300));
 const order = await rpc("tools/call", { name: "crear_pedido", arguments: { items: [{ sku, cantidad: QUANTITY }], comprador: "tap-demo-agent", idioma: LANG } }, "agent-payer-auth");
 console.log("order:", textOf(order).slice(0, 800));
 if (order?.structuredContent) console.log(JSON.stringify(order.structuredContent, null, 2));
+
+if (REPLAY) {
+  const res = await fetch(MCP, { method: "POST", headers: lastRequest.headers, body: lastRequest.body });
+  const text = await res.text();
+  console.log(`replay of the signed order request (same signature, same nonce): HTTP ${res.status}`);
+  console.log(text.slice(0, 300));
+  if (res.status !== 401) {
+    console.error("expected 401 for a replayed nonce");
+    process.exit(1);
+  }
+}
