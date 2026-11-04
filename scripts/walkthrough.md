@@ -4,9 +4,11 @@ Everything here runs against the public Katun sandbox (`https://sandbox.katunpay
 (`https://api.sandbox.airwallex.com`), with synthetic data and test cards. No money moves. Screen names are the English texts of
 the Katun panel; the panel also runs in Spanish.
 
-Status on 3 November 2026: every step is implemented in the sandbox; the live runs are pending (see the status table in the
-README). Steps 6 to 8 need Airwallex merchant-side Agentic Commerce access; step 8b is the same purchase through the store's
-own Katun connector and does not.
+Status on November 3, 2026: every step is implemented in the sandbox; the live runs are pending (see the status table in the
+README). Steps 6 to 8 need Airwallex merchant-side Agentic Commerce access and Claude Desktop; step 8b is the same purchase
+through the store's own Katun connector and needs neither.
+
+To look before building your own, the README lists the addresses of the demonstration store (Caprock Trail Supply).
 
 ## 0. Before you start
 
@@ -25,7 +27,7 @@ second factor, and an Airwallex sandbox account.
 3. Create a Client ID and an API key in Account, Developer, API keys. Keep them in a password manager or a local file with
    restricted permissions. Never paste them into a chat with an assistant.
 4. Email `devhelp@airwallex.com` to ask for merchant-side Agentic Commerce access for that account, as the hackathon builder guide
-   says. With it come the merchant MCP endpoint, the token Claude uses for it, and the test-checkout instructions.
+   says. It enables the merchant onboarding API that step 6 uses, and with it the merchant MCP endpoint of each onboarded store.
 
 ## 2. Partner sandbox in Katun
 
@@ -82,38 +84,55 @@ store's Payment method screen.
 Needs Airwallex merchant-side access.
 
 1. In the same screen, under Airwallex merchant connector (sandbox), press Connect to Airwallex (sandbox). Katun onboards the store
-   with the merchant onboarding API, using the credentials above, its own checkout URL for this store and a checkout secret it
-   generates and keeps encrypted.
-2. The screen shows the Onboarding status, the Airwallex merchant ID and the Store connector address
-   (`https://api.sandbox.airwallex.com/pa/ai/{merchantId}/acp/mcp`).
+   with the merchant onboarding API, using the credentials above, its own checkout URL for this store, a checkout secret it
+   generates and keeps encrypted, the store's sign-in server (an OAuth issuer inside Katun,
+   `https://sandbox.katunpay.com/oauth/{institution-id}/{store-id}`) and the sandbox's address as the store's image domain.
+2. The screen shows the Onboarding status, the Airwallex merchant ID, the Store connector address
+   (`https://mcp.sandbox.airwallex.com/pa/ai/{merchantId}/acp/mcp`) and the Claude Desktop configuration.
 3. Press Publish the catalog to Airwallex (sandbox). Last publication shows how many products were sent, added, updated and failed.
    Download the catalog (TSV) gives the same rows for Airwallex's file upload.
 
 ## 7. Connect Claude
 
-Add the Store connector address as an HTTP MCP server, with the token Airwallex provides for it. With Claude Code, for example:
+Copy the Claude Desktop configuration from the screen into `claude_desktop_config.json` and reopen Claude Desktop. It has this
+form and carries no token:
 
 ```
-claude mcp add --transport http outdoor-store "<Store connector address>" --header "Authorization: Bearer <token from Airwallex>"
+{
+  "mcpServers": {
+    "agentic-commerce": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.sandbox.airwallex.com/pa/ai/{merchantId}/acp/mcp"]
+    }
+  }
+}
 ```
+
+When Claude Desktop connects, the store's sign-in page opens in the browser ("Sign in to" the store, "Test store: no real money
+is charged."). Press Continue as guest: no personal data is asked, and the token carries a new pseudonym.
 
 Do not use Airwallex's docs or developer MCP servers as the store endpoint.
 
 ## 8. Buy
 
 1. Ask Claude for something in the catalog ("a headlamp for a weekend trip"). Refine, choose, and ask to buy.
-2. Claude confirms store, product, quantity, delivery and total before paying.
+2. Claude confirms store, product, quantity, delivery and total before paying. Behind it, Airwallex calls Katun's checkout for
+   this store, which checks stock, price and the order limit and answers with the Katun order number.
 3. Pay in the payment component Airwallex presents, with test card `4035 5010 0000 0008`, any future date and any CVC. The card goes
    only into that component, never into the chat.
 4. Claude reports the payment outcome and the Katun order number (`KP-` followed by five characters).
-5. In the Katun panel, the order is in Orders with channel Airwallex (sandbox) and its receipt.
+5. In the Katun panel, the order is in Orders with channel Airwallex (sandbox) and its receipt. Katun recorded the payment once,
+   from Airwallex's signed `payment_intent.succeeded` notification.
 
 ### The exception path
 
-- **Over the limit:** buy something above US$ 150.00 (a tent, for example). The order waits in Exceptions. Choose the store above the
-  menu, open Exceptions and approve it: the payment is captured once and the receipt records who approved it.
-- **Declined card:** make an order of exactly US$ 80.51 and pay with `2223 0000 1018 1375`. The payment is declined, the order stays
-  unpaid and no second payment is created.
+- **Over the limit:** buy something above US$ 150.00 (a tent, for example). Katun does not let Airwallex open the checkout for it:
+  it answers with its order number and the store's order page, and nothing is charged. The order waits in Exceptions. Choose the
+  store above the menu, open Exceptions and approve it. Then open the order page, press Pay with Airwallex (sandbox) and pay on
+  Airwallex's hosted payment page with the test card: the order is paid once, and the receipt records who approved it.
+  Rejecting it instead cancels it with no charge.
+- **Declined card:** pay with `4646 4646 4646 4644` (declined by the Airwallex risk engine, any total). The payment is declined,
+  the order stays unpaid and no second payment is created.
 - **Changed price or unavailable product:** change a product's price or set its stock to 0 in Catalog after Claude showed it.
   Katun's checkout answers with the current price or the unavailability, and nothing is charged until the buyer confirms again.
 
@@ -123,8 +142,8 @@ This route needs steps 2 to 5 only (no Airwallex merchant-side access).
 
 1. In the panel, choose the store above the menu and open Channels. Copy the store's connector address
    (`https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp`).
-2. Add it to Claude as a connector (in Claude Code: `claude mcp add --transport http outdoor-store "<store connector address>"`;
-   it needs no token).
+2. Add it to Claude as a custom connector (in Claude Code:
+   `claude mcp add --transport http outdoor-store "<store connector address>"`). It needs no token and no sign-in.
 3. Ask Claude for something in the catalog ("a headlamp for a weekend trip"). Claude confirms store, product, quantity,
    delivery and total, creates the order and returns the Katun order number (`KP-` followed by five characters) with a payment
    link.
@@ -132,9 +151,9 @@ This route needs steps 2 to 5 only (no Airwallex merchant-side access).
    payment page opens. Pay with test card `4035 5010 0000 0008`, any future date and any CVC.
 5. Back on the order page, the order is paid. In the panel, it is in Orders with channel AI assistant and its receipt, whose
    rail is `airwallex-sandbox` with the Payment Intent identifiers.
-6. The exception path is the same as above: an order above US$ 150.00 waits in Exceptions until a person approves it; a
-   declined test card (`4646 4646 4646 4644`, declined by the risk engine, any total) leaves the order unpaid, with no capture, and
-   trying to pay it again does not create a second Payment Intent.
+6. The exception path: an order above US$ 150.00 waits in Exceptions, and its order page has no payment button until a person
+   approves it; then it is paid once on that page. A declined test card (`4646 4646 4646 4644`, declined by the risk engine, any
+   total) leaves the order unpaid, with no capture, and trying to pay it again does not create a second Payment Intent.
 
 ## 9. Verify the receipt offline
 
@@ -143,35 +162,49 @@ bash verify/verify-receipt.sh <institution-id> <order-number>
 ```
 
 `<institution-id>` is the identifier in your network connector's address under Channels
-(`https://sandbox.katunpay.com/t/{institution-id}/mcp`). The script downloads the key index, the public keys, the single-file
-verifier and the signed record, then verifies with no network. Expected first lines:
+(`https://sandbox.katunpay.com/t/{institution-id}/mcp`); for the demonstration store it is `sbx-tvzsuq4hi6`. Only a paid order has
+a signed record. The script downloads the key index, the public keys, the single-file verifier and the signed record into
+`verify/out/<order-number>/`, then verifies with no network. Expected first lines:
 
 ```
 VALID (12 ms, offline) key=... format=katun-evidence/1
 Test record: no money moved
 ```
 
-Change one letter in `verify/out/<order-number>/registro.json` and run the last command of the script again: `INVALID`.
+Change one letter in `verify/out/<order-number>/record.json` and run the verifier again, with no network:
+
+```
+node verify/out/<order-number>/katun-verify.mjs verify/out/<order-number>/record.json --keys-dir verify/out/<order-number>/keys --lang en
+```
+
+The output starts with `INVALID`.
 
 ## 10. Second scene: a buying agent with a Trusted Agent Protocol signature
 
-This scene uses the store's own Katun connector (Channels, with the store chosen: `https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp`).
+This scene uses the store's own Katun connector (Channels, with the store chosen:
+`https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp`). Each `demo-buy.mjs` run that gets past the first request
+places a real test order; `--sku LGT-01` orders the 400-lumen headlamp instead of the first search result.
 
 ```
 node tap-agent/keygen.mjs            # once; the private key stays in tap-agent/keys/private/, ignored by git
 node tap-agent/sign.mjs --self-test  # the signature verifies on the right host and fails on another
-node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --unsigned
-node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp"
-node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --replay
+node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --sku LGT-01 --unsigned
+node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --sku LGT-01
+node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --sku LGT-01 --replay
 ```
 
-In the demonstration store, the Katun platform operator has set the agent policy to Registered agents only and has added this
-agent's key directory to the platform registry. The unsigned run gets `401` with `agent_not_verified`; the signed run places the
-order; with `--replay`, the signed order request is sent a second time exactly as it was (same signature, same `nonce`) and
-gets `401`. Buying agents in the panel lists the agents the platform recognizes, and every attempt is recorded with the protocol the
-agent identified itself with. In your own sandbox the policy and
-the registry are not yours to change: ask the platform operator to register your agent's key directory, or run the scene against
-the demonstration store.
+A store recognizes a signing agent only when the Katun platform operator has added the agent's key directory to the platform
+registry, and refuses unidentified agents only when its agent policy is Registered agents only. In the demonstration store the
+registered directory is the demonstration agent's
+(`https://baktun-studio.github.io/katun-checkout-for-agents/tap-agent/keys/jwks.json`), whose private key is not in this
+repository, and the store normally accepts unidentified assistants so Claude can buy through its connector. For the scene, the
+operator switches the policy to Registered agents only: the unsigned run gets `401` with `agent_not_verified`; the signed run
+places the order; with `--replay`, the signed order request is sent a second time exactly as it was (same signature, same
+`nonce`) and gets `401`. Then the operator switches the policy back. Buying agents in the panel lists the agents the platform
+recognizes, and every attempt is recorded with the protocol the agent identified itself with.
+
+`keygen.mjs` replaces `tap-agent/keys/jwks.json` with your own public key. To run the signed scene with it, serve that file over
+`https` and ask the platform operator to register it; in your own sandbox the policy and the registry are not yours to change.
 
 ## 11. The network view
 

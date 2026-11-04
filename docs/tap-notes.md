@@ -1,6 +1,6 @@
 # Trusted Agent Protocol: what we verified, and when
 
-Read on 26 October 2026 (US Central time) from the public merchant specification at
+Read on October 26, 2026 (US Central time) from the public merchant specification at
 `https://developer.visa.com/docs/trusted-agent-protocol/trusted-agent-protocol-specifications`, without a Visa Developer session,
 and from `https://developer.visa.com/docs/trusted-agent-protocol/product-terms` and `https://github.com/visa/trusted-agent-protocol`.
 Everything below is what those pages said that day. Where the page is silent or inconsistent, we say so and we say what this
@@ -64,9 +64,9 @@ specification, and the sample code's license points to Visa's terms rather than 
 - Uses a window of at most 8 minutes between `created` and `expires` (the rule, not the sample). The default is 5 minutes.
 - Generates a fresh random nonce (128 bits, base64url) for every request.
 - Uses `tag="agent-browser-auth"` for search and product detail and `tag="agent-payer-auth"` for checkout.
-- Publishes its public key as a JWKS (`kty: OKP`, `crv: Ed25519`, `x`, `kid`) in `tap-agent/keys/jwks.json`, meant to be served
-  over HTTPS from this repository's GitHub Pages once the repository is public. The `kid` is the RFC 7638 JWK thumbprint of the
-  key. This is our directory, not Visa's: as of 26 October 2026 there is no publicly reachable Visa key directory, no test agents
+- Publishes its public key as a JWKS (`kty: OKP`, `crv: Ed25519`, `x`, `kid`) in `tap-agent/keys/jwks.json`, served over HTTPS by
+  GitHub Pages at `https://baktun-studio.github.io/katun-checkout-for-agents/tap-agent/keys/jwks.json`. The `kid` is the RFC 7638
+  JWK thumbprint of the key. This is our directory, not Visa's: as of October 26, 2026 there is no publicly reachable Visa key directory, no test agents
   with Visa-issued keys and no hosted TAP sandbox.
 - Does not send a `Signature-Agent` header by default (the specification does not define one). An option adds it for merchants
   that resolve directories that way.

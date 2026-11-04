@@ -52,8 +52,8 @@ now hosts an MCP endpoint for this store."
 
 ### Scene 3A. The Claude configuration and the purchase (0:55 to 2:00) · Relevance, Product integration, Complexity
 
-On screen: the Claude connector configuration with the Store connector address (token hidden); a Claude chat: "I need a headlamp
-for a weekend trip, under 60 dollars"; results from the catalog; Claude confirms store, product, quantity, delivery and total; the
+On screen: the Claude Desktop configuration with `mcp-remote` and the Store connector address (it carries no token); the store's
+sign-in page, Continue as guest; a Claude chat: "I need a headlamp for a weekend trip, under 60 dollars"; results from the catalog; Claude confirms store, product, quantity, delivery and total; the
 Airwallex payment component; test card 4035 5010 0000 0008 typed in the component; Claude reports the payment outcome and the
 Katun order number; the Katun panel, Orders, the same order with channel Airwallex (sandbox).
 
@@ -63,12 +63,13 @@ and Airwallex share. Katun checks stock, price and limit and answers with its ow
 
 ### Scene 4A. The exception: over the limit, approved by a person (2:00 to 2:45) · Relevance, Innovation, Product integration
 
-On screen: Claude asks for a tent above the store's US$ 150.00 limit; the order is pending approval; the panel's Exceptions with
-the order; the store chosen above the menu; Approve; the order captured once; the receipt shows who approved it. If recorded: the
-declined test card, the order unpaid and no second payment.
+On screen: Claude asks for a tent above the store's US$ 150.00 limit; Katun answers with its order number and the order page
+instead of opening Airwallex's checkout; the panel's Exceptions with the order; the store chosen above the menu; Approve; the
+order page, Pay with Airwallex (sandbox), the test card on Airwallex's hosted page; the order paid once; the receipt shows who
+approved it. If recorded: the declined test card, the order unpaid and no second payment.
 
-Narration: "This order is over the store's limit, so nothing is captured. It waits for a named person, who approves it, and the
-authorized payment is captured exactly once. A declined card leaves the order unpaid, with no second attempt."
+Narration: "This order is over the store's limit, so nothing is charged. It waits for a named person, who approves it, and only
+then is it paid, exactly once. A declined card leaves the order unpaid, with no second attempt."
 
 ## Version B: the store's Katun connector, paid with Airwallex Payment Intents
 
@@ -100,13 +101,13 @@ anything was charged."
 
 ### Scene 4B. The exception: over the limit, approved by a person (2:00 to 2:45) · Relevance, Innovation, Product integration
 
-On screen: Claude asks for a tent above the store's US$ 150.00 limit; the order is pending approval; the panel's Exceptions with
-the order; the store chosen above the menu; Approve; the order captured once; the receipt shows who approved it. If recorded: an
+On screen: Claude asks for a tent above the store's US$ 150.00 limit; the order is pending approval and its page has no payment
+button yet; the panel's Exceptions with the order; the store chosen above the menu; Approve; the order page, Pay with Airwallex
+(sandbox), the test card on Airwallex's hosted page; the order paid once; the receipt shows who approved it. If recorded: an
 order paid with the declined test card 4646 4646 4646 4644, the order unpaid and no second payment.
 
-Narration: "This order is over the store's limit, so nothing is captured. It waits for a named person, who approves it, and the
-authorized payment is captured exactly once. A declined card leaves the order unpaid, and paying again does not create a second
-payment."
+Narration: "This order is over the store's limit, so nothing is charged. It waits for a named person, who approves it, and only
+then is it paid, exactly once. A declined card leaves the order unpaid, and paying again does not create a second payment."
 
 ## Scene 5. The receipt, verified offline (2:45 to 3:20) · Innovation, Complexity
 
@@ -119,7 +120,7 @@ Airwallex sandbox; no money moved."
 
 ## Scene 6. A buying agent that identifies itself (3:20 to 3:55) · Innovation, Complexity, Product integration
 
-On screen: terminal, `node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --unsigned` answered with 401; the
+On screen: terminal, `node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --sku LGT-01 --unsigned` answered with 401; the
 same command signed with `--replay`: the order placed, then the replayed signed request answered with 401; the request headers
 (`Signature-Input` with `tag="agent-payer-auth"`, `nonce`, `alg="Ed25519"`); the panel's Buying agents with the attempts.
 
