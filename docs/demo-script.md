@@ -1,6 +1,6 @@
 # Demo video script
 
-Target length 4:30 (hard limit under 5:00). English narration by the founder over a prepared screen recording. Only scenes that
+Target length 4:30 (hard limit under 5:00). English narration with an AI-generated voice over a prepared screen recording. Only scenes that
 have run live are recorded; a scene that has not run is cut, not simulated. Every order on screen is a real test order made in the
 sandbox; none is seeded.
 
@@ -67,7 +67,7 @@ On screen: Claude asks for a tent above the store's US$ 150.00 limit; the order 
 the order; the store chosen above the menu; Approve; the order captured once; the receipt shows who approved it. If recorded: the
 declined test card, the order unpaid and no second payment.
 
-Narration: "This order is over the store's limit, so nothing is captured. It waits for a named person. I approve it, and the
+Narration: "This order is over the store's limit, so nothing is captured. It waits for a named person, who approves it, and the
 authorized payment is captured exactly once. A declined card leaves the order unpaid, with no second attempt."
 
 ## Version B: the store's Katun connector, paid with Airwallex Payment Intents
@@ -104,7 +104,7 @@ On screen: Claude asks for a tent above the store's US$ 150.00 limit; the order 
 the order; the store chosen above the menu; Approve; the order captured once; the receipt shows who approved it. If recorded: an
 order paid with the declined test card 4646 4646 4646 4644, the order unpaid and no second payment.
 
-Narration: "This order is over the store's limit, so nothing is captured. It waits for a named person. I approve it, and the
+Narration: "This order is over the store's limit, so nothing is captured. It waits for a named person, who approves it, and the
 authorized payment is captured exactly once. A declined card leaves the order unpaid, and paying again does not create a second
 payment."
 
