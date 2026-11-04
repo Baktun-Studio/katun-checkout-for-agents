@@ -10,7 +10,7 @@
 //   "@path": /t/pub/m/store/mcp
 //   "@signature-params": ("@authority" "@path");created=...;keyid="...";alg="Ed25519";expires=...;nonce="...";tag="..."
 import { createPrivateKey, createPublicKey, randomBytes, sign as edSign, verify as edVerify } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -99,7 +99,13 @@ export function verifyRequest({ url, headers, jwk, now = () => Math.floor(Date.n
 /** Loads the agent's key material from tap-agent/keys. */
 export function loadAgentKeys() {
   const here = dirname(fileURLToPath(import.meta.url));
-  const privateKeyPem = readFileSync(join(here, "keys", "private", "agent.pem"), "utf8");
+  const privatePath = join(here, "keys", "private", "agent.pem");
+  if (!existsSync(privatePath)) {
+    console.error(`no private key at ${privatePath}: run "node tap-agent/keygen.mjs" first (it writes your own key pair; the`);
+    console.error("demonstration agent's private key is not in this repository)");
+    process.exit(2);
+  }
+  const privateKeyPem = readFileSync(privatePath, "utf8");
   const jwks = JSON.parse(readFileSync(join(here, "keys", "jwks.json"), "utf8"));
   const jwk = jwks.keys[0];
   return { privateKeyPem, jwk, keyid: jwk.kid };
