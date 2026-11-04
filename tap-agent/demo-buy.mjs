@@ -3,10 +3,13 @@
 // signing every request with its Trusted Agent Protocol signature. With --unsigned it sends the same calls without a signature,
 // to show what the merchant answers to an agent it cannot identify.
 //
-//   node tap-agent/demo-buy.mjs --mcp https://sandbox.katunpay.com/t/{pub}/m/{store}/mcp --query "headlamp" --quantity 1
+//   node tap-agent/demo-buy.mjs --mcp https://sandbox.katunpay.com/t/{pub}/m/{store}/mcp --query "headlamp" --sku LGT-01 --quantity 1
 //   node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --unsigned
 //   node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --replay   # then resends the signed order request as is
 //
+// Tool and argument names (buscar_productos, disponibilidad, crear_pedido, cantidad, comprador, idioma) are the Katun sandbox
+// connector's own, as its tools/list publishes them; see https://sandbox.katunpay.com/docs/referencia-del-conector?lang=en.
+// --sku picks the product to order; without it, the first search result is ordered.
 // Browsing calls (search, product) are tagged agent-browser-auth; the order is tagged agent-payer-auth. The buyer pseudonym is
 // fixed and synthetic. No card data is ever sent: the order's payment happens on the merchant's public order page.
 // With --replay, after the order is placed the exact same signed request (same headers, same nonce, same body) is sent
@@ -20,7 +23,7 @@ const opt = (name, fallback) => {
 };
 const MCP = opt("--mcp");
 if (!MCP || !MCP.startsWith("https://")) {
-  console.error("--mcp https://sandbox.katunpay.com/t/{publisher}/m/{merchant}/mcp is required");
+  console.error("--mcp https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp is required");
   process.exit(2);
 }
 const QUERY = opt("--query", "headlamp");
@@ -88,8 +91,9 @@ console.log(`session: ${sessionId ?? "(none)"}`);
 
 const search = await rpc("tools/call", { name: "buscar_productos", arguments: { q: QUERY, limite: 3, idioma: LANG } }, "agent-browser-auth");
 console.log("search:", textOf(search).slice(0, 500));
-const items = search?.structuredContent?.productos ?? search?.structuredContent?.items ?? [];
-const sku = items[0]?.sku ?? opt("--sku");
+// The Katun sandbox connector returns its search results in structuredContent.resultados.
+const items = search?.structuredContent?.resultados ?? search?.structuredContent?.productos ?? search?.structuredContent?.items ?? [];
+const sku = opt("--sku") ?? items[0]?.sku;
 if (!sku) {
   console.error("no product found and no --sku given; stop");
   process.exit(1);

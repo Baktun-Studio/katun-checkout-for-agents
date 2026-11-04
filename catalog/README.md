@@ -18,12 +18,13 @@ Options:
 
 - `--image-base <https URL>`: optional prefix for the `image` column. Without it (the default) the column is empty and the photos
   are uploaded to the sandbox from the Catalog screen with `catalog/photos.zip` (see below), so the sandbox serves them itself and
-  no outside host is needed. Use it only if you host `catalog/images/` on your own `https` host.
+  no outside host is needed. Use it only if you host `catalog/images/` on your own `https` host, and only for the store's Katun
+  connector: the Airwallex onboarding declares the sandbox's own address as the store's only image domain.
 - `--count <n>`: number of products (default 100, the minimum the hackathon kit asks for).
 
 ## CSV format
 
-Read on 26 October 2026 at `https://sandbox.katunpay.com/docs/guia-del-comercio?lang=en` and from the sandbox's own template:
+Read on October 26, 2026 at `https://sandbox.katunpay.com/docs/guia-del-comercio?lang=en` and from the sandbox's own template:
 
 ```
 sku,name,description,price,stock,category,image
@@ -46,10 +47,13 @@ The sandbox has no public import API; the catalog is loaded from the merchant pa
    connection are set up by the institution's operator, so a Single store sandbox is not enough for this demonstration.
 2. In the panel, open Catalog and download the CSV template once to confirm the column names have not changed since the date
    above. If they changed, update `generate-catalog.mjs` and this file.
-3. Import `catalog/products.csv`. Check the import report: 100 rows saved, 0 with problems.
+3. Import `catalog/products.csv`. Check the import report: 100 rows saved, 0 with problems. Then, in the same screen, upload
+   `catalog/photos.zip` with Upload photos or a .zip. Each photo is matched to its product by the SKU in the file name, and the
+   sandbox serves it over `https` from its own address (`https://sandbox.katunpay.com/t/{institution-id}/img/...`). This is how
+   the demonstration store's photos are served.
 4. Set the order limit of the store low enough for the demo (we use USD 150) so that an order above it waits for a human
    approval. The limit is in Your business, Order limit.
-5. Note the merchant connector URL shown in the panel (`https://sandbox.katunpay.com/t/{publisher}/m/{merchant}/mcp`). The
+5. Note the merchant connector URL shown in the panel (`https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp`). The
    reproduction scripts take it as a parameter.
 
 Do not seed orders. The orders shown in the demo are the real test orders made while rehearsing.
