@@ -25,6 +25,7 @@ node tap-agent/sign.mjs --self-test
 node tap-agent/request.mjs --url https://sandbox.katunpay.com/t/{publisher}/m/{merchant}/mcp --tag agent-browser-auth --method POST --body '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"tap-demo","version":"0.1"}}}'
 node tap-agent/demo-buy.mjs --mcp https://sandbox.katunpay.com/t/{publisher}/m/{merchant}/mcp --query "headlamp" --quantity 1
 node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --unsigned   # the same, without a signature
+node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --replay     # signed, then resends the order request with its used nonce
 ```
 
 ## Publishing the key directory

@@ -4,8 +4,9 @@ Everything here runs against the public Katun sandbox (`https://sandbox.katunpay
 (`https://api.sandbox.airwallex.com`), with synthetic data and test cards. No money moves. Screen names are the English texts of
 the Katun panel; the panel also runs in Spanish.
 
-Status on 2 November 2026: every step is implemented in the sandbox; the live runs are pending (see the status table in the
-README). Steps 6 to 9 need Airwallex merchant-side Agentic Commerce access.
+Status on 3 November 2026: every step is implemented in the sandbox; the live runs are pending (see the status table in the
+README). Steps 6 to 8 need Airwallex merchant-side Agentic Commerce access; step 8b is the same purchase through the store's
+own Katun connector and does not.
 
 ## 0. Before you start
 
@@ -116,6 +117,25 @@ Do not use Airwallex's docs or developer MCP servers as the store endpoint.
 - **Changed price or unavailable product:** change a product's price or set its stock to 0 in Catalog after Claude showed it.
   Katun's checkout answers with the current price or the unavailability, and nothing is charged until the buyer confirms again.
 
+## 8b. The same purchase through the store's Katun connector
+
+This route needs steps 2 to 5 only (no Airwallex merchant-side access).
+
+1. In the panel, choose the store above the menu and open Channels. Copy the store's connector address
+   (`https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp`).
+2. Add it to Claude as a connector (in Claude Code: `claude mcp add --transport http outdoor-store "<store connector address>"`;
+   it needs no token).
+3. Ask Claude for something in the catalog ("a headlamp for a weekend trip"). Claude confirms store, product, quantity,
+   delivery and total, creates the order and returns the Katun order number (`KP-` followed by five characters) with a payment
+   link.
+4. Open the link. The store's public order page shows the order and Pay with Airwallex (sandbox). Press it: Airwallex's hosted
+   payment page opens. Pay with test card `4035 5010 0000 0008`, any future date and any CVC.
+5. Back on the order page, the order is paid. In the panel, it is in Orders with channel AI assistant and its receipt, whose
+   rail is `airwallex-sandbox` with the Payment Intent identifiers.
+6. The exception path is the same as above: an order above US$ 150.00 waits in Exceptions until a person approves it; a
+   declined test card (`4646 4646 4646 4644`, declined by the risk engine, any total) leaves the order unpaid, with no capture, and
+   trying to pay it again does not create a second Payment Intent.
+
 ## 9. Verify the receipt offline
 
 ```
@@ -142,11 +162,13 @@ node tap-agent/keygen.mjs            # once; the private key stays in tap-agent/
 node tap-agent/sign.mjs --self-test  # the signature verifies on the right host and fails on another
 node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --unsigned
 node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp"
+node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --replay
 ```
 
 In the demonstration store, the Katun platform operator has set the agent policy to Registered agents only and has added this
 agent's key directory to the platform registry. The unsigned run gets `401` with `agent_not_verified`; the signed run places the
-order; Buying agents in the panel lists the agents the platform recognizes, and every attempt is recorded with the protocol the
+order; with `--replay`, the signed order request is sent a second time exactly as it was (same signature, same `nonce`) and
+gets `401`. Buying agents in the panel lists the agents the platform recognizes, and every attempt is recorded with the protocol the
 agent identified itself with. In your own sandbox the policy and
 the registry are not yours to change: ask the platform operator to register your agent's key directory, or run the scene against
 the demonstration store.
