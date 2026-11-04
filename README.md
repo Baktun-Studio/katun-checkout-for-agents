@@ -114,7 +114,7 @@ public Katun sandbox. Orders placed there are real test orders in a shared store
 |---|---|
 | The store's Katun connector (MCP over HTTP, no sign-in) | `https://sandbox.katunpay.com/t/sbx-tvzsuq4hi6/m/mer_trailhead-outfitters/mcp` |
 | The partner's network connector (all its stores) | `https://sandbox.katunpay.com/t/sbx-tvzsuq4hi6/mcp` |
-| The store's merchant MCP endpoint hosted by Airwallex | `https://mcp.sandbox.airwallex.com/pa/ai/<AIRWALLEX_MERCHANT_ID>/acp/mcp` |
+| The store's merchant MCP endpoint hosted by Airwallex | `https://mcp.sandbox.airwallex.com/pa/ai/01b57d8a-2213-4822-98df-be6e37fb465d/acp/mcp` |
 | The store's sign-in server (OAuth issuer) for that endpoint | `https://sandbox.katunpay.com/oauth/sbx-tvzsuq4hi6/mer_trailhead-outfitters` |
 | The demonstration agent's key directory (JWKS) | `https://baktun-studio.github.io/katun-checkout-for-agents/tap-agent/keys/jwks.json` |
 | A receipt, verified offline | `bash verify/verify-receipt.sh sbx-tvzsuq4hi6 <order-number>` |
