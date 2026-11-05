@@ -13,11 +13,30 @@ Everything runs in sandboxes, with synthetic data and test cards: no money moves
 
 **Demo video:** <VIDEO_URL>
 
-> **Status on November 3, 2026.** Every step below is implemented in the public Katun sandbox, including the merchant checkout
-> and sign-in contract Airwallex published on November 2, 2026. The live runs are pending. The same purchase also runs through
-> the store's own Katun connector, paid with Airwallex Payment Intents; that route does not depend on the Airwallex merchant MCP
-> endpoint. The [status table](#status) says, step by step, what has run live and when. Nothing in this README describes as done
-> a step that has not run.
+> **Status on November 5, 2026.** The demonstration ran live in the sandboxes on November 4 and 5, 2026: the purchase in Claude
+> through the Airwallex merchant MCP endpoint, the order above the limit approved by a named person and paid once, the declined
+> card, the signed receipt verified offline and the Trusted Agent Protocol scene. The same purchase also runs through the store's
+> own Katun connector, paid with Airwallex Payment Intents; that route does not depend on the Airwallex merchant MCP endpoint.
+> The [status table](#status) says, step by step, what has run live and when. Nothing in this README describes as done a step
+> that has not run.
+
+## Try it in five minutes
+
+No account needed: the demonstration store is public in the sandbox.
+
+1. **Buy from the store in Claude.** Add the store's Katun connector,
+   `https://sandbox.katunpay.com/t/sbx-tvzsuq4hi6/m/mer_caprock-trail-supply/mcp`, to Claude as a custom connector (or to
+   Claude Code with `claude mcp add --transport http caprock <address>`). Ask for "a headlamp under 60 dollars", confirm the terms,
+   open the payment link Claude returns, press Pay with Airwallex (sandbox) and pay with test card `4035 5010 0000 0008` (any
+   future date, any CVC). Claude gives you the Katun order number.
+2. **Verify a receipt offline.** With Node.js 22 and `curl`:
+   `bash verify/verify-receipt.sh sbx-tvzsuq4hi6 KP-TKKVD` (the order above the limit in the video), or your own order number
+   once it is paid. Change one letter in `verify/out/<order>/record.json` and run the verifier again: `INVALID`.
+3. **Check the agent's signature locally.** `node tap-agent/sign.mjs --self-test` signs a request with the Trusted Agent Protocol
+   (with a throwaway key if you have not run `keygen.mjs`) and verifies it: it passes for the right host and fails for another. The live scene against the store needs a key directory
+   registered with the platform; see [`tap-agent/README.md`](tap-agent/README.md).
+
+The full route, with your own partner sandbox, store, catalog and Airwallex account, is in [Run it](#run-it).
 
 ## What the demonstration shows
 
@@ -112,10 +131,10 @@ public Katun sandbox. Orders placed there are real test orders in a shared store
 
 | What | Address |
 |---|---|
-| The store's Katun connector (MCP over HTTP, no sign-in) | `https://sandbox.katunpay.com/t/sbx-tvzsuq4hi6/m/mer_trailhead-outfitters/mcp` |
+| The store's Katun connector (MCP over HTTP, no sign-in) | `https://sandbox.katunpay.com/t/sbx-tvzsuq4hi6/m/mer_caprock-trail-supply/mcp` |
 | The partner's network connector (all its stores) | `https://sandbox.katunpay.com/t/sbx-tvzsuq4hi6/mcp` |
 | The store's merchant MCP endpoint hosted by Airwallex | `https://mcp.sandbox.airwallex.com/pa/ai/01b57d8a-2213-4822-98df-be6e37fb465d/acp/mcp` |
-| The store's sign-in server (OAuth issuer) for that endpoint | `https://sandbox.katunpay.com/oauth/sbx-tvzsuq4hi6/mer_trailhead-outfitters` |
+| The store's sign-in server (OAuth issuer) for that endpoint | `https://sandbox.katunpay.com/oauth/sbx-tvzsuq4hi6/mer_caprock-trail-supply` |
 | The demonstration agent's key directory (JWKS) | `https://baktun-studio.github.io/katun-checkout-for-agents/tap-agent/keys/jwks.json` |
 | A receipt, verified offline | `bash verify/verify-receipt.sh sbx-tvzsuq4hi6 <order-number>` |
 
@@ -199,15 +218,17 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 
 | Step | Status |
 |---|---|
-| Partner sandbox, store, catalog import, order limit, network view | Implemented in the sandbox, pending live run |
-| Airwallex (sandbox) payment method, its credentials and notification URL | Implemented in the sandbox, pending live run |
-| Merchant onboarding to Airwallex (with the store's sign-in server) and catalog publication from the panel | Implemented in the sandbox, pending live run |
-| Purchase in Claude through the Airwallex merchant MCP endpoint, order number back | Implemented in the sandbox, pending live run |
-| Purchase in Claude through the store's Katun connector, paid on Airwallex's hosted payment page (Payment Intents), order number back | Implemented in the sandbox, pending live run |
-| Order above the limit, named approval, paid once | Implemented in the sandbox, pending live run |
-| Changed price, unavailable product or declined card without a duplicate payment | Implemented in the sandbox, pending live run |
-| Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Implemented in the sandbox, pending live run |
-| TAP-signed agent accepted, unsigned agent refused, repeated nonce refused | Implemented in the sandbox, pending live run |
+| Partner sandbox, store, catalog import, order limit, network view | Verified live on November 5, 2026 |
+| Airwallex (sandbox) payment method and its credentials | Verified live on November 5, 2026 |
+| Airwallex notification URL (webhook) for the demonstration store | Implemented in the sandbox, pending live run |
+| Merchant onboarding to Airwallex (with the store's sign-in server) and catalog publication from the panel | Verified live on November 5, 2026 |
+| Purchase in Claude through the Airwallex merchant MCP endpoint, order number back | Verified live on November 5, 2026 (KP-6HP6F) |
+| Purchase in Claude through the store's Katun connector, paid on Airwallex's hosted payment page (Payment Intents), order number back | Verified live on November 4, 2026 |
+| Order above the limit, named approval, paid once | Verified live on November 5, 2026 (KP-TKKVD) |
+| Declined test card without a charge | Verified live on November 5, 2026 (KP-MCB5A) |
+| Changed price or unavailable product without a duplicate payment | Implemented in the sandbox, pending live run |
+| Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Verified live on November 5, 2026 (KP-TKKVD) |
+| TAP-signed agent accepted, unsigned agent refused, repeated nonce refused | Verified live on November 5, 2026 (KP-8BE7N) |
 | `scripts/check-env.mjs` against the sandbox (docs, public keys, verifier reachable) | Verified on November 3, 2026 |
 | `tap-agent/sign.mjs --self-test` (signature verifies on the right host, fails on another) | Verified locally on November 3, 2026 |
 | Catalog generator (100 products, deterministic output) | Verified locally on November 3, 2026 |
