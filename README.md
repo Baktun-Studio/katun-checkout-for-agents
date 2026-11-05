@@ -36,6 +36,9 @@ No account needed: the demonstration store is public in the sandbox.
    (with a throwaway key if you have not run `keygen.mjs`) and verifies it: it passes for the right host and fails for another. The live scene against the store needs a key directory
    registered with the platform; see [`tap-agent/README.md`](tap-agent/README.md).
 
+`node scripts/smoke-test.mjs` runs every check above that needs no account (no order is placed), and GitHub Actions runs it
+every day.
+
 The full route, with your own partner sandbox, store, catalog and Airwallex account, is in [Run it](#run-it).
 
 ## What the demonstration shows
@@ -148,7 +151,7 @@ afterwards.
 catalog/     the 100-product synthetic catalog (products.csv), its generator, and PNG placeholder photos
 tap-agent/   demonstration buying agent: Ed25519 key generation, Trusted Agent Protocol signer, MCP purchase, its JWKS
 verify/      offline verification of a receipt
-scripts/     environment check and the step-by-step walkthrough (walkthrough.md)
+scripts/     environment check, fresh-clone smoke test and the step-by-step walkthrough (walkthrough.md)
 docs/        TAP notes (what we verified in the public specification and when), the demo video script
 ```
 
@@ -230,6 +233,7 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 | Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Verified live on November 5, 2026 (KP-TKKVD) |
 | TAP-signed agent accepted, unsigned agent refused, repeated nonce refused | Verified live on November 5, 2026 (KP-8BE7N) |
 | `scripts/check-env.mjs` against the sandbox (docs, public keys, verifier reachable) | Verified on November 3, 2026 |
+| `scripts/smoke-test.mjs` on a fresh clone (everything above that needs no account) | Verified on November 5, 2026; runs daily in GitHub Actions |
 | `tap-agent/sign.mjs --self-test` (signature verifies on the right host, fails on another) | Verified locally on November 3, 2026 |
 | Catalog generator (100 products, deterministic output) | Verified locally on November 3, 2026 |
 | The demonstration agent's key directory served over https and identical to `tap-agent/keys/jwks.json` | Verified on November 3, 2026 |

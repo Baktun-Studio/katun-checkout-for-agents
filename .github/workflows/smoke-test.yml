@@ -1,0 +1,25 @@
+name: Smoke test
+
+# What a reader can run from a fresh clone, against the public sandboxes: the environment check, the TAP signature self-test,
+# the catalog generator, a receipt verified offline (and the same receipt altered), the store's Katun connector, the store's
+# Airwallex merchant MCP endpoint, the store's sign-in server and the agent's key directory. Places no order; moves no money.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 13 * * *"   # every day at 13:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/smoke-test.mjs
