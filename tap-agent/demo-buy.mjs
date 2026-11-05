@@ -5,15 +5,16 @@
 //
 //   node tap-agent/demo-buy.mjs --mcp https://sandbox.katunpay.com/t/{pub}/m/{store}/mcp --query "headlamp" --sku LGT-01 --quantity 1
 //   node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --unsigned
-//   node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --replay   # then resends the signed order request as is
+//   node tap-agent/demo-buy.mjs --mcp ... --query "headlamp" --replay   # then resends the signed session request as is
 //
 // Tool and argument names (buscar_productos, disponibilidad, crear_pedido, cantidad, comprador, idioma) are the Katun sandbox
 // connector's own, as its tools/list publishes them; see https://sandbox.katunpay.com/docs/referencia-del-conector?lang=en.
 // --sku picks the product to order; without it, the first search result is ordered.
 // Browsing calls (search, product) are tagged agent-browser-auth; the order is tagged agent-payer-auth. The buyer pseudonym is
 // fixed and synthetic. No card data is ever sent: the order's payment happens on the merchant's public order page.
-// With --replay, after the order is placed the exact same signed request (same headers, same nonce, same body) is sent
-// again, the way an eavesdropper would replay it; a merchant that enforces single-use nonces answers 401.
+// With --replay, after the order is placed the signed request that opened the session (same headers, same nonce, same body)
+// is sent again, the way an eavesdropper would replay it; a merchant that enforces single-use nonces answers 401. The Katun
+// connector checks the agent's signature when the session opens (initialize), so that is the request replayed here.
 import { loadAgentKeys, signRequest } from "./sign.mjs";
 
 const args = process.argv.slice(2);
@@ -86,6 +87,7 @@ function textOf(result) {
 
 console.log(UNSIGNED ? "mode: unsigned agent" : `mode: TAP-signed agent, kid ${keys.keyid}`);
 await rpc("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "katun-checkout-for-agents demo", version: "0.1.0" } }, "agent-browser-auth");
+const sessionRequest = lastRequest;
 await notify("notifications/initialized", {});
 console.log(`session: ${sessionId ?? "(none)"}`);
 
@@ -104,12 +106,13 @@ console.log("availability:", textOf(availability).slice(0, 300));
 
 const order = await rpc("tools/call", { name: "crear_pedido", arguments: { items: [{ sku, cantidad: QUANTITY }], comprador: "tap-demo-agent", idioma: LANG } }, "agent-payer-auth");
 console.log("order:", textOf(order).slice(0, 800));
-if (order?.structuredContent) console.log(JSON.stringify(order.structuredContent, null, 2));
+const o = order?.structuredContent ?? {};
+if (o.pedido_id) console.log(JSON.stringify({ pedido_id: o.pedido_id, estado: o.estado, total: o.total, requiere_aprobacion: o.requiere_aprobacion, enlace_pago: o.enlace_pago }, null, 2));
 
 if (REPLAY) {
-  const res = await fetch(MCP, { method: "POST", headers: lastRequest.headers, body: lastRequest.body });
+  const res = await fetch(MCP, { method: "POST", headers: sessionRequest.headers, body: sessionRequest.body });
   const text = await res.text();
-  console.log(`replay of the signed order request (same signature, same nonce): HTTP ${res.status}`);
+  console.log(`replay of the signed session request (same signature, same nonce): HTTP ${res.status}`);
   console.log(text.slice(0, 300));
   if (res.status !== 401) {
     console.error("expected 401 for a replayed nonce");

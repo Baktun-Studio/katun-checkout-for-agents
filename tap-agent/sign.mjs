@@ -112,7 +112,19 @@ export function loadAgentKeys() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes("--self-test")) {
-  const { privateKeyPem, jwk, keyid } = loadAgentKeys();
+  // Uses your key when keygen.mjs has written one; otherwise a throwaway key made in memory, so the test runs on a fresh clone.
+  const here = dirname(fileURLToPath(import.meta.url));
+  let privateKeyPem, jwk, keyid;
+  if (existsSync(join(here, "keys", "private", "agent.pem"))) {
+    ({ privateKeyPem, jwk, keyid } = loadAgentKeys());
+  } else {
+    const { generateKeyPairSync } = await import("node:crypto");
+    const pair = generateKeyPairSync("ed25519");
+    privateKeyPem = pair.privateKey.export({ type: "pkcs8", format: "pem" });
+    jwk = { ...pair.publicKey.export({ format: "jwk" }), kid: "self-test" };
+    keyid = "self-test";
+    console.log("no key of yours yet: testing with a throwaway key made in memory");
+  }
   const url = "https://sandbox.katunpay.com/t/demo/m/store/mcp";
   const signed = signRequest({ method: "POST", url, keyid, privateKeyPem, tag: "agent-payer-auth" });
   console.log(signed.headers["Signature-Input"]);

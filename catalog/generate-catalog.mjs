@@ -65,7 +65,7 @@ outer: for (const cat of CATEGORIES) {
     const sku = `${cat.code}-${String(i + 1).padStart(2, "0")}`;
     const rnd = seeded(n);
     const stock = 3 + Math.floor(rnd() * 40);
-    const description = `${name}. Made of ${MATERIAL[Math.floor(rnd() * MATERIAL.length)]}, sized for ${USE[Math.floor(rnd() * USE.length)]}. Synthetic demo product, not for sale.`;
+    const description = `${name}. Made of ${MATERIAL[Math.floor(rnd() * MATERIAL.length)]}, sized for ${USE[Math.floor(rnd() * USE.length)]}.`;
     rows.push({ sku, name, description, price: price.toFixed(2), stock, category: cat.name, image: IMAGE_BASE ? `${IMAGE_BASE}${sku}.png` : "" });
   }
 }
