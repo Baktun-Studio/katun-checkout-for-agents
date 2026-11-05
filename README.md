@@ -226,7 +226,7 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 | Airwallex notification URL (webhook) for the demonstration store | Implemented in the sandbox, pending live run |
 | Merchant onboarding to Airwallex (with the store's sign-in server) and catalog publication from the panel | Verified live on November 5, 2026 |
 | Purchase in Claude through the Airwallex merchant MCP endpoint, order number back | Verified live on November 5, 2026 (KP-6HP6F) |
-| Purchase in Claude through the store's Katun connector, paid on Airwallex's hosted payment page (Payment Intents), order number back | Verified live on November 4, 2026 |
+| Purchase in Claude through the store's Katun connector, paid on Airwallex's hosted payment page (Payment Intents), order number back | Verified live on November 5, 2026 (KP-BA7NT) |
 | Order above the limit, named approval, paid once | Verified live on November 5, 2026 (KP-TKKVD) |
 | Declined test card without a charge | Verified live on November 5, 2026 (KP-MCB5A) |
 | Changed price or unavailable product without a duplicate payment | Implemented in the sandbox, pending live run |
