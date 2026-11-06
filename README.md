@@ -12,7 +12,7 @@ demonstration buying agent that signs its requests with the Visa Trusted Agent P
 step-by-step walkthrough. It does not contain Katun itself.
 Everything runs in sandboxes, with synthetic data and test cards: no money moves.
 
-**Demo video:** <VIDEO_URL>
+**Demo video:** https://youtu.be/T-2V_Ec3Q0k (4:56)
 
 > **Status on November 5, 2026.** The demonstration ran live in the sandboxes on November 4 and 5, 2026: the purchase in Claude
 > through the Airwallex merchant MCP endpoint, the order above the limit approved by a named person and paid once, the declined
