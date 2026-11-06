@@ -1,6 +1,6 @@
 # Demo video script
 
-Length 4:45 (hard limit under 5:00). English narration with an AI-generated voice over screen recordings of live runs in the
+Length 4:56 (hard limit under 5:00). English narration with an AI-generated voice over screen recordings of live runs in the
 sandboxes. Every order on screen is a real test order made in the sandbox on November 5, 2026; none is seeded. No money moved.
 
 The video follows the Airwallex merchant MCP route: Claude buys through the merchant MCP endpoint that Airwallex hosts for the
@@ -22,7 +22,7 @@ Recording rules:
 - The panel is used as the sandbox person "Demo Operator".
 - The browser address bar shows only `sandbox.katunpay.com`, Airwallex sandbox pages and the public repository.
 
-## Scene 1. The problem (0:00 to 0:23) · Impact
+## Scene 1. The problem (0:00 to 0:22) · Impact
 
 On screen: title card "Katun Checkout for Agents"; the three questions, one at a time; where Katun sits (Claude, Airwallex,
 Katun, the store).
@@ -30,7 +30,7 @@ Katun, the store).
 Narration: "When an AI agent buys from a store, the store has three questions. Is this agent who it says it is? Is it allowed to
 spend this much? And what exactly did we agree to? Katun answers all three for the merchant, right behind Airwallex."
 
-## Scene 2. Setup: the store, its catalog and its Airwallex connection (0:23 to 0:48) · Relevance, Product integration
+## Scene 2. Setup: the store, its catalog and its Airwallex connection (0:22 to 0:48) · Relevance, Product integration
 
 On screen: the partner panel, Your stores with Caprock Trail Supply; its Catalog with 100 products; the Airwallex merchant
 connector (sandbox) section with Connect to Airwallex (sandbox) and Publish the catalog to Airwallex (sandbox) highlighted; the
@@ -51,7 +51,7 @@ It finds a forty-five dollar headlamp from Caprock Trail Supply, and I check out
 Katun's checkout, with a secret only the two of them share. Katun checks stock, price and the store's limit. The card goes only
 into Airwallex's payment component, never into the chat. Paid, and the buyer gets Katun's own order number back."
 
-## Scene 4. The exception and the declined card (1:45 to 3:00) · Relevance, Innovation, Product integration
+## Scene 4. The exception and the declined card (1:45 to 2:54) · Relevance, Innovation, Product integration
 
 On screen: in Claude, a Basin 3-person tent at US$ 249.00, above the store's US$ 150.00 limit; Continue to payment stays
 disabled; the order page waiting; the panel's Exceptions, Approve; the order page, Pay with Airwallex (sandbox), Airwallex's
@@ -64,7 +64,18 @@ So the payment button stays off, and nothing is charged. The order waits in the 
 approves it. Only then can it be paid, on Airwallex's own page, exactly once. And the record shows who approved it. Next, a test
 card that Airwallex declines. Airwallex's component refuses it, and nothing is charged."
 
-## Scene 5. The receipt, verified offline (3:00 to 3:30) · Innovation, Complexity
+## Scene 4b. Airi as the buyer (2:54 to 3:16) · Innovation, Product integration
+
+On screen: Claude Code in a terminal with the prompt "Buy a headlamp under 60 dollars from Caprock Trail Supply. Pay with my Airi
+wallet"; the order created through the store's Katun connector (KP-ZT7V7); `airi-cli mandate create` and the approval URL; Airi's
+"Approve agent payment" page and "Agent payment approved" after the shopper's passkey; the agent typing the one-time credential
+into Airwallex's hosted page and paying; the order page "Payment authorized"; the agent's summary with the Katun order number.
+
+Narration: "Airwallex's own wallet, Airi, can be the buyer too. The agent asks Airi for a payment mandate; the shopper approves
+it with a passkey, and Airi issues a one-time credential through Visa Intelligent Commerce. The merchant captures it on Airwallex,
+and Katun signs the receipt like any other sale."
+
+## Scene 5. The receipt, verified offline (3:16 to 3:46) · Innovation, Complexity
 
 On screen: the transaction evidence certificate of KP-TKKVD; a terminal, `bash verify/verify-receipt.sh sbx-tvzsuq4hi6 KP-TKKVD`,
 output `VALID ... format=katun-evidence/1` and `Test record: no money moved`; one letter changed in the record with `sed`;
@@ -74,7 +85,7 @@ Narration: "Every paid order gets a signed record: channel, limit, approver and 
 offline, with one file and our public keys. Change one letter in the record. And the check fails. This was a test charge in the
 Airwallex sandbox. No money moved."
 
-## Scene 6. A buying agent that identifies itself (3:30 to 4:07) · Innovation, Complexity, Product integration
+## Scene 6. A buying agent that identifies itself (3:46 to 4:23) · Innovation, Complexity, Product integration
 
 On screen: split screen. Left, a terminal: `node tap-agent/demo-buy.mjs --mcp "$STORE" --query "headlamp" --unsigned` answered
 with 401; the same command signed, the order placed (KP-8BE7N), and the replayed signed request answered with 401; the request
@@ -86,7 +97,7 @@ Agent Protocol signature, the order goes through. Send the same signed request a
 The signature follows Visa's Trusted Agent Protocol, tested against our own conformant agent. And the store's panel logs every
 attempt: rejected, accepted, and the replay refused."
 
-## Scene 7. The network view (4:07 to 4:31) · Impact, Complexity
+## Scene 7. The network view (4:23 to 4:41) · Impact, Complexity
 
 On screen: All stores: Home with Your stores; Exceptions; Consolidated by store, channel and currency with the channel Airwallex
 (sandbox); Channels with the network connector.
@@ -94,7 +105,7 @@ On screen: All stores: Home with Your stores; Exceptions; Consolidated by store,
 Narration: "A bank, a processor or a partner turns this on for every store in its network. The operator sees the approvals
 waiting across the network. Sales by store and by channel. And one connector that reaches all its stores."
 
-## Scene 8. Close (4:31 to 4:45) · Impact
+## Scene 8. Close (4:41 to 4:56) · Impact
 
 On screen: repository URL and the sandbox URL.
 
