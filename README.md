@@ -77,7 +77,11 @@ The full route, with your own partner sandbox, store, catalog and Airwallex acco
    window). The Katun platform operator sets the demonstration store to accept registered agents only and adds this agent's key
    directory to the platform registry; then the unsigned agent gets `401`, the signed one places the order, and a replayed signed
    request gets `401` for its repeated `nonce`.
-5. **The network view.** The store belongs to a partner institution (a processor, PSP or partner sandbox). Its operator sees all
+5. **Airi as the buyer.** Airwallex's own wallet can be the buyer too. From Claude Code, the agent finds the product, places the
+   order through the store's Katun connector and asks Airi for a payment mandate with `airi-cli`; the shopper approves it with a
+   passkey, Airi issues a one-time credential through Visa Intelligent Commerce, the credential is charged in the Airwallex
+   sandbox and Katun captures the payment and signs the receipt like any other sale. Test card in the Airi wallet; no money moved.
+6. **The network view.** The store belongs to a partner institution (a processor, PSP or partner sandbox). Its operator sees all
    its stores, their sales, the orders waiting for approval across the network, the consolidated sales by store, channel and
    currency, and each order's signed receipt.
 
@@ -241,6 +245,7 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 | Changed price or unavailable product without a duplicate payment | Implemented in the sandbox, pending live run |
 | Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Verified live on November 5, 2026 (KP-TKKVD) |
 | TAP-signed agent accepted, unsigned agent refused, repeated nonce refused | Verified live on November 5, 2026 (KP-8BE7N) |
+| Airi (Airwallex's wallet) as the buyer: mandate approved by the shopper with a passkey, one-time credential issued through Visa Intelligent Commerce, charged in the Airwallex sandbox, receipt signed | Verified live on November 6, 2026 (KP-93WMQ) |
 | `scripts/check-env.mjs` against the sandbox (docs, public keys, verifier reachable) | Verified on November 3, 2026 |
 | `scripts/smoke-test.mjs` on a fresh clone (everything above that needs no account) | Verified on November 5, 2026; runs in GitHub Actions on every push and on demand; a daily scheduled run is configured |
 | `tap-agent/sign.mjs --self-test` (signature verifies on the right host, fails on another) | Verified locally on November 3, 2026 |
