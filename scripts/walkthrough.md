@@ -4,8 +4,8 @@ Everything here runs against the public Katun sandbox (`https://sandbox.katunpay
 (`https://api.sandbox.airwallex.com`), with synthetic data and test cards. No money moves. Screen names are the English texts of
 the Katun panel; the panel also runs in Spanish.
 
-Status on November 3, 2026: every step is implemented in the sandbox; the live runs are pending (see the status table in the
-README). Steps 6 to 8 need Airwallex merchant-side Agentic Commerce access and Claude Desktop; step 8b is the same purchase
+Status on November 5, 2026: every step ran live in the sandboxes; the status table in the README lists each run and its order
+number. Steps 6 to 8 need Airwallex merchant-side Agentic Commerce access and Claude Desktop; step 8b is the same purchase
 through the store's own Katun connector and needs neither.
 
 To look before building your own, the README lists the addresses of the demonstration store (Caprock Trail Supply).
@@ -143,7 +143,7 @@ This route needs steps 2 to 5 only (no Airwallex merchant-side access).
 1. In the panel, choose the store above the menu and open Channels. Copy the store's connector address
    (`https://sandbox.katunpay.com/t/{institution-id}/m/{store-id}/mcp`).
 2. Add it to Claude as a custom connector (in Claude Code:
-   `claude mcp add --transport http outdoor-store "<store connector address>"`). It needs no token and no sign-in.
+   `claude mcp add --transport http caprock "<store connector address>"`). It needs no token and no sign-in.
 3. Ask Claude for something in the catalog ("a headlamp for a weekend trip"). Claude confirms store, product, quantity,
    delivery and total, creates the order and returns the Katun order number (`KP-` followed by five characters) with a payment
    link.
@@ -186,7 +186,7 @@ This scene uses the store's own Katun connector (Channels, with the store chosen
 places a real test order; `--sku LGT-01` orders the 400-lumen headlamp instead of the first search result.
 
 ```
-node tap-agent/keygen.mjs            # once; the private key stays in tap-agent/keys/private/, ignored by git
+node tap-agent/keygen.mjs            # once; key pair and JWKS go to tap-agent/keys/private/, ignored by git
 node tap-agent/sign.mjs --self-test  # the signature verifies on the right host and fails on another
 node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --sku LGT-01 --unsigned
 node tap-agent/demo-buy.mjs --mcp <store connector> --query "headlamp" --sku LGT-01
@@ -203,8 +203,10 @@ places the order; with `--replay`, the signed order request is sent a second tim
 `nonce`) and gets `401`. Then the operator switches the policy back. Buying agents in the panel lists the agents the platform
 recognizes, and every attempt is recorded with the protocol the agent identified itself with.
 
-`keygen.mjs` replaces `tap-agent/keys/jwks.json` with your own public key. To run the signed scene with it, serve that file over
-`https` and ask the platform operator to register it; in your own sandbox the policy and the registry are not yours to change.
+`keygen.mjs` writes your own public key to `tap-agent/keys/private/jwks.json` (and a copy to the path given with `--out`), leaving
+the demonstration agent's `tap-agent/keys/jwks.json` untouched. To run the signed scene with your key, serve that JWKS file over
+`https` and ask the platform operator to register that address; in your own sandbox the policy and the registry are not yours
+to change.
 
 ## 11. The network view
 

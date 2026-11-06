@@ -96,17 +96,20 @@ export function verifyRequest({ url, headers, jwk, now = () => Math.floor(Date.n
   return ok ? { ok: true, params } : { ok: false, reason: "signature does not verify" };
 }
 
-/** Loads the agent's key material from tap-agent/keys. */
+/** Loads the agent's key material from tap-agent/keys: the private key and the JWKS keygen.mjs wrote next to it
+ *  (tap-agent/keys/private/jwks.json), or the tracked tap-agent/keys/jwks.json when there is no JWKS next to the key. */
 export function loadAgentKeys() {
   const here = dirname(fileURLToPath(import.meta.url));
   const privatePath = join(here, "keys", "private", "agent.pem");
+  const ownJwksPath = join(here, "keys", "private", "jwks.json");
   if (!existsSync(privatePath)) {
     console.error(`no private key at ${privatePath}: run "node tap-agent/keygen.mjs" first (it writes your own key pair; the`);
     console.error("demonstration agent's private key is not in this repository)");
     process.exit(2);
   }
   const privateKeyPem = readFileSync(privatePath, "utf8");
-  const jwks = JSON.parse(readFileSync(join(here, "keys", "jwks.json"), "utf8"));
+  const jwksPath = existsSync(ownJwksPath) ? ownJwksPath : join(here, "keys", "jwks.json");
+  const jwks = JSON.parse(readFileSync(jwksPath, "utf8"));
   const jwk = jwks.keys[0];
   return { privateKeyPem, jwk, keyid: jwk.kid };
 }
