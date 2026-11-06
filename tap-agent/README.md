@@ -9,8 +9,9 @@ No dependencies: Node.js 22 or newer.
 ## Files
 
 - `keygen.mjs`: generates an Ed25519 key pair. The private key goes to `tap-agent/keys/private/agent.pem` (ignored by git, never
-  committed). The public key goes to `tap-agent/keys/jwks.json` as a JWKS (`kty: OKP`, `crv: Ed25519`, `x`, `kid`), the
-  directory the agent publishes. The `kid` is the RFC 7638 thumbprint of the key.
+  committed). The public key goes to `tap-agent/keys/private/jwks.json` as a JWKS (`kty: OKP`, `crv: Ed25519`, `x`, `kid`), the
+  directory the agent publishes; `--out <path>` also writes a copy there. The `kid` is the RFC 7638 thumbprint of the key. The
+  tracked `tap-agent/keys/jwks.json` is the demonstration agent's directory and is not touched.
 - `sign.mjs`: the signer. Exports `signRequest({ method, url, keyid, privateKeyPem, tag, ttlSeconds, nonce, signatureAgent })`
   returning the `Signature-Input` and `Signature` headers, and `verifyRequest(...)` for a local self-check.
 - `request.mjs`: command line. Sends one signed (or unsigned) HTTP request and prints the status and body.
@@ -39,8 +40,9 @@ is not in this repository.
 Katun recognizes an agent when the platform operator adds its key directory to the platform registry; with the Trusted Agent
 Protocol, a `keyid` that is in no registered directory is an invalid signature
 (`https://sandbox.katunpay.com/docs/referencia-del-conector?lang=en`, Agent identity). To use your own agent, run `keygen.mjs`
-(it replaces `tap-agent/keys/jwks.json` with your public key), serve that file from any `https` host and ask the platform
-operator to register it.
+(it writes your public key to `tap-agent/keys/private/jwks.json` and prints the path), serve that file from any `https` host and
+ask the platform operator to register that address: that is the key directory the platform must be given, not the demonstration
+agent's.
 
 ## What this is and is not
 

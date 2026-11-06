@@ -7,8 +7,9 @@ Behind the merchant sits Katun: it owns the catalog, the stock, the price, the o
 receipt that anyone can verify offline. Payment runs in the Airwallex sandbox.
 
 This repository holds what a third party needs to reproduce the demonstration against the public Katun sandbox
-(`https://sandbox.katunpay.com`): the synthetic catalog, a demonstration buying agent that signs its requests with the Visa
-Trusted Agent Protocol, the offline receipt verifier, and the step-by-step walkthrough. It does not contain Katun itself.
+(`https://sandbox.katunpay.com`, documented at `https://sandbox.katunpay.com/docs?lang=en`): the synthetic catalog, a
+demonstration buying agent that signs its requests with the Visa Trusted Agent Protocol, the offline receipt verifier, and the
+step-by-step walkthrough. It does not contain Katun itself.
 Everything runs in sandboxes, with synthetic data and test cards: no money moves.
 
 **Demo video:** <VIDEO_URL>
@@ -31,13 +32,21 @@ No account needed: the demonstration store is public in the sandbox.
    future date, any CVC). Claude gives you the Katun order number.
 2. **Verify a receipt offline.** With Node.js 22 and `curl`:
    `bash verify/verify-receipt.sh sbx-tvzsuq4hi6 KP-TKKVD` (the order above the limit in the video), or your own order number
-   once it is paid. Change one letter in `verify/out/<order>/record.json` and run the verifier again: `INVALID`.
-3. **Check the agent's signature locally.** `node tap-agent/sign.mjs --self-test` signs a request with the Trusted Agent Protocol
-   (with a throwaway key if you have not run `keygen.mjs`) and verifies it: it passes for the right host and fails for another. The live scene against the store needs a key directory
-   registered with the platform; see [`tap-agent/README.md`](tap-agent/README.md).
+   once it is paid. Change one letter in `verify/out/<order>/record.json` and run the verifier with no network:
 
-`node scripts/smoke-test.mjs` runs every check above that needs no account (no order is placed), and GitHub Actions runs it
-every day.
+   ```
+   node verify/out/KP-TKKVD/katun-verify.mjs verify/out/KP-TKKVD/record.json --keys-dir verify/out/KP-TKKVD/keys --lang en
+   ```
+
+   The output starts with `INVALID`. Running `verify-receipt.sh` again would not show it: that script downloads the record
+   afresh and says `VALID`.
+3. **Check the agent's signature locally.** `node tap-agent/sign.mjs --self-test` signs a request with the Trusted Agent Protocol
+   (with a throwaway key if you have not run `keygen.mjs`) and verifies it: it passes for the right host and fails for another.
+   The live scene against the store needs a key directory registered with the platform; see
+   [`tap-agent/README.md`](tap-agent/README.md).
+
+`node scripts/smoke-test.mjs` runs every check above that needs no account (no order is placed). GitHub Actions runs it on
+every push and on demand; a daily scheduled run is configured.
 
 The full route, with your own partner sandbox, store, catalog and Airwallex account, is in [Run it](#run-it).
 
@@ -68,7 +77,6 @@ The full route, with your own partner sandbox, store, catalog and Airwallex acco
    window). The Katun platform operator sets the demonstration store to accept registered agents only and adds this agent's key
    directory to the platform registry; then the unsigned agent gets `401`, the signed one places the order, and a replayed signed
    request gets `401` for its repeated `nonce`.
-   Agent identity verified with Visa's Trusted Agent Protocol signatures (RFC 9421), tested against our own TAP-conformant agent.
 5. **The network view.** The store belongs to a partner institution (a processor, PSP or partner sandbox). Its operator sees all
    its stores, their sales, the orders waiting for approval across the network, the consolidated sales by store, channel and
    currency, and each order's signed receipt.
@@ -130,7 +138,8 @@ The full route, with your own partner sandbox, store, catalog and Airwallex acco
 ## The demonstration store
 
 Caprock Trail Supply, a synthetic outdoor-equipment store with the 100 products of `catalog/`, in a partner sandbox of the
-public Katun sandbox. Orders placed there are real test orders in a shared store; no money moves.
+public Katun sandbox. Orders placed there are real test orders in a shared store; no money moves. The connector's tool names
+and some receipt fields are in Spanish, Katun's working language; Claude uses them transparently.
 
 | What | Address |
 |---|---|
@@ -233,7 +242,7 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 | Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Verified live on November 5, 2026 (KP-TKKVD) |
 | TAP-signed agent accepted, unsigned agent refused, repeated nonce refused | Verified live on November 5, 2026 (KP-8BE7N) |
 | `scripts/check-env.mjs` against the sandbox (docs, public keys, verifier reachable) | Verified on November 3, 2026 |
-| `scripts/smoke-test.mjs` on a fresh clone (everything above that needs no account) | Verified on November 5, 2026; runs daily in GitHub Actions |
+| `scripts/smoke-test.mjs` on a fresh clone (everything above that needs no account) | Verified on November 5, 2026; runs in GitHub Actions on every push and on demand; a daily scheduled run is configured |
 | `tap-agent/sign.mjs --self-test` (signature verifies on the right host, fails on another) | Verified locally on November 3, 2026 |
 | Catalog generator (100 products, deterministic output) | Verified locally on November 3, 2026 |
 | The demonstration agent's key directory served over https and identical to `tap-agent/keys/jwks.json` | Verified on November 3, 2026 |
@@ -247,8 +256,9 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 
 - It is not the Katun source code. Katun is a separate, private codebase; this repository only talks to its public sandbox over
   HTTP.
-- It holds no keys, credentials or production URLs. Private keys generated by `tap-agent/keygen.mjs` stay outside the tracked tree
-  and are ignored by git. Airwallex credentials are typed by the operator into the sandbox panel, never into a chat or a file here.
+- It holds no keys, credentials or production URLs. `tap-agent/keygen.mjs` writes your key pair, private key and JWKS alike, to
+  `tap-agent/keys/private/`, which git ignores; the tracked `tap-agent/keys/jwks.json` is the demonstration agent's directory.
+  Airwallex credentials are typed by the operator into the sandbox panel, never into a chat or a file here.
 - It includes no code from Visa. The signer is written from the public specification; Visa's sample code is under Visa's own terms
   and is not copied here.
 - Payments are test charges in the Airwallex sandbox; no money moved. The demonstration agent is our own, with our own keys in

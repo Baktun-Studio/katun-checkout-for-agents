@@ -17,6 +17,19 @@ import { zipStored } from "./zip.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
+if (args.includes("--help") || args.includes("-h")) {
+  console.log(`Usage: node catalog/generate-catalog.mjs [--image-base <https URL>] [--count <n>]
+
+Writes catalog/products.csv, one placeholder PNG photo per product in catalog/images/ and catalog/photos.zip.
+Deterministic: running it twice with the same Node.js gives the same files.
+
+Options:
+  --image-base <https URL>  prefix for the image column; without it the column is empty and the photos are uploaded
+                            to the sandbox with catalog/photos.zip (default)
+  --count <n>               number of products (default 100)
+  --help, -h                print this usage and exit`);
+  process.exit(0);
+}
 const opt = (name, fallback) => {
   const i = args.indexOf(name);
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
