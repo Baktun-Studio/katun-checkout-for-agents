@@ -75,6 +75,10 @@ Narration: "Airwallex's own wallet, Airi, can be the buyer too. The agent asks A
 it with a passkey, and Airi issues a one-time credential through Visa Intelligent Commerce. The merchant captures it on Airwallex,
 and Katun signs the receipt like any other sale."
 
+Note on the narration above: today the Visa Intelligent Commerce credential comes through Airi's wallet, operated by Airwallex.
+Katun has no integration of its own with that program; the demonstration agent asks Airi for the credential and charges it in
+the Airwallex sandbox.
+
 ## Scene 5. The receipt, verified offline (3:16 to 3:46) · Innovation, Complexity
 
 On screen: the transaction evidence certificate of KP-TKKVD; a terminal, `bash verify/verify-receipt.sh sbx-tvzsuq4hi6 KP-TKKVD`,
