@@ -1,10 +1,13 @@
 # Katun Checkout for Agents
 
-Merchant-side agentic checkout for the Airwallex Agentic Banking Hackathon 2026, track 10 (Merchant-Enabled Agentic Checkout).
+Katun is agentic checkout for merchants: a buyer in Claude or ChatGPT finds a store's products, confirms the terms and pays;
+the store keeps its catalog, its order limit, a named human approval and a signed receipt anyone can verify offline. This
+repository is the public demonstration built for the Airwallex Agentic Banking Hackathon 2026, track 10 (Merchant-Enabled
+Agentic Checkout).
 
-A buyer in Claude finds a merchant's products, confirms the terms, pays with a test card and gets the merchant's order number.
-Behind the merchant sits Katun: it owns the catalog, the stock, the price, the order limit, the named human approval and a signed
-receipt that anyone can verify offline. Payment runs in the Airwallex sandbox.
+In the demonstration, a buyer in Claude finds the store's products, confirms the terms, pays with a test card and gets the
+store's order number. Behind the store sits Katun: it owns the catalog, the stock, the price, the order limit, the named human
+approval and the signed receipt. Payment runs in the Airwallex sandbox.
 
 This repository holds what a third party needs to reproduce the demonstration against the public Katun sandbox
 (`https://sandbox.katunpay.com`, documented at `https://sandbox.katunpay.com/docs?lang=en`): the synthetic catalog, a
@@ -14,10 +17,11 @@ Everything runs in sandboxes, with synthetic data and test cards: no money moves
 
 **Demo video:** https://youtu.be/T-2V_Ec3Q0k (4:56)
 
-> **Status on November 5, 2026.** The demonstration ran live in the sandboxes on November 4 and 5, 2026: the purchase in Claude
-> through the Airwallex merchant MCP endpoint, the order above the limit approved by a named person and paid once, the declined
-> card, the signed receipt verified offline and the Trusted Agent Protocol scene. The same purchase also runs through the store's
-> own Katun connector, paid with Airwallex Payment Intents; that route does not depend on the Airwallex merchant MCP endpoint.
+> **Status on November 6, 2026.** The demonstration ran live in the sandboxes on November 4, 5 and 6, 2026: the purchase in
+> Claude through the Airwallex merchant MCP endpoint, the order above the limit approved by a named person and paid once, the
+> declined card, the signed receipt verified offline, the Trusted Agent Protocol scene and the purchase paid with Airi,
+> Airwallex's wallet. The same purchase also runs through the store's own Katun connector, paid with Airwallex Payment Intents;
+> that route does not depend on the Airwallex merchant MCP endpoint.
 > The [status table](#status) says, step by step, what has run live and when. Nothing in this README describes as done a step
 > that has not run.
 
@@ -79,8 +83,10 @@ The full route, with your own partner sandbox, store, catalog and Airwallex acco
    request gets `401` for its repeated `nonce`.
 5. **Airi as the buyer.** Airwallex's own wallet can be the buyer too. From Claude Code, the agent finds the product, places the
    order through the store's Katun connector and asks Airi for a payment mandate with `airi-cli`; the shopper approves it with a
-   passkey, Airi issues a one-time credential through Visa Intelligent Commerce, the credential is charged in the Airwallex
-   sandbox and Katun captures the payment and signs the receipt like any other sale. Test card in the Airi wallet; no money moved.
+   passkey, Airi issues a one-time credential, the credential is charged in the Airwallex sandbox and Katun captures the payment
+   and signs the receipt like any other sale. Test card in the Airi wallet; no money moved. Today the Visa Intelligent Commerce
+   credential comes through Airi's wallet: Airwallex operates that step, and Katun has no integration of its own with that
+   program.
 6. **The network view.** The store belongs to a partner institution (a processor, PSP or partner sandbox). Its operator sees all
    its stores, their sales, the orders waiting for approval across the network, the consolidated sales by store, channel and
    currency, and each order's signed receipt.
@@ -143,7 +149,7 @@ The full route, with your own partner sandbox, store, catalog and Airwallex acco
 
 Caprock Trail Supply, a synthetic outdoor-equipment store with the 100 products of `catalog/`, in a partner sandbox of the
 public Katun sandbox. Orders placed there are real test orders in a shared store; no money moves. The connector's tool names
-and some receipt fields are in Spanish, Katun's working language; Claude uses them transparently.
+and some receipt fields are in Spanish today; English aliases are on the roadmap. Claude and ChatGPT use them without trouble.
 
 | What | Address |
 |---|---|
@@ -245,7 +251,7 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 | Changed price or unavailable product without a duplicate payment | Implemented in the sandbox, pending live run |
 | Signed receipt with the Airwallex sandbox Payment Intent, verified offline | Verified live on November 5, 2026 (KP-TKKVD) |
 | TAP-signed agent accepted, unsigned agent refused, repeated nonce refused | Verified live on November 5, 2026 (KP-8BE7N) |
-| Airi (Airwallex's wallet) as the buyer: mandate approved by the shopper with a passkey, one-time credential issued through Visa Intelligent Commerce, charged in the Airwallex sandbox, receipt signed | Verified live on November 6, 2026 (KP-93WMQ) |
+| Airi (Airwallex's wallet) as the buyer: mandate approved by the shopper with a passkey, one-time credential issued by Airi (today the Visa Intelligent Commerce credential comes through Airi's wallet, not through any Katun integration with that program), charged in the Airwallex sandbox, receipt signed | Verified live on November 6, 2026 (KP-93WMQ) |
 | `scripts/check-env.mjs` against the sandbox (docs, public keys, verifier reachable) | Verified on November 3, 2026 |
 | `scripts/smoke-test.mjs` on a fresh clone (everything above that needs no account) | Verified on November 5, 2026; runs in GitHub Actions on every push and on demand; a daily scheduled run is configured |
 | `tap-agent/sign.mjs --self-test` (signature verifies on the right host, fails on another) | Verified locally on November 3, 2026 |
@@ -254,8 +260,10 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 
 ## Next steps
 
-- Airwallex's buyer agent (Airi CLI) as the buyer of this store, once Airwallex releases its test mode with a test card.
-- Visa Intelligent Commerce on the agent side, if Visa grants sandbox access to the demonstration agent.
+- Visa Intelligent Commerce on the agent side, with our own demonstration agent, if Visa grants it sandbox access. Today the
+  Visa Intelligent Commerce credential comes through Airi's wallet.
+- The same demonstration on the network of a bank or an acquirer, as the partner institution that holds the store.
+- English aliases for the connector's tool names and receipt fields.
 
 ## What this repository is not
 
@@ -271,8 +279,8 @@ Test cards for the Airwallex sandbox (source: `https://www.airwallex.com/docs/pa
 
 ## How it was built
 
-Every change in Katun ships through LineBreak, our spec-to-release gate: approved acceptance criteria are served to the coding
-agents and nothing merges without a human signature.
+Every change in Katun ships through LineBreak, our spec-to-release gate: approved acceptance criteria drive the build and
+nothing merges without a named human signature.
 
 ## License
 
